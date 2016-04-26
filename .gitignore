@@ -1,0 +1,4 @@
+sim/
+*.bak
+*.bak~
+*.vhd~
