@@ -1,19 +1,21 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
-USE ieee.std_logic_signed.all;
+USE ieee.numeric_std.all;
 
 ENTITY audio_controller IS
    PORT ( CLOCK_50, CLOCK_27, AUD_DACLRCK   : IN    STD_LOGIC;
           AUD_ADCLRCK, AUD_BCLK, AUD_ADCDAT  : IN    STD_LOGIC;
-          KEY                                : IN    STD_LOGIC_VECTOR(0 DOWNTO 0);
+          KEY                                : IN    STD_LOGIC;
           I2C_SDAT                      : INOUT STD_LOGIC;
           I2C_SCLK, AUD_DACDAT, AUD_XCK : OUT   STD_LOGIC;
           
           -- add fifo signals for LT / RT channels
-          lt_fifo_dout : IN std_logic_vector(23 downto 0);
+          lt_fifo_dout : IN std_logic_vector(15 downto 0);
           lt_fifo_rd_en : OUT std_logic;
-          rt_fifo_dout : IN std_logic_vector(23 downto 0);
-          rt_fifo_rd_en : OUT std_logic
+			 lt_fifo_empty : IN std_logic;
+          rt_fifo_dout : IN std_logic_vector(15 downto 0);
+          rt_fifo_rd_en : OUT std_logic;
+			 rt_fifo_empty : IN std_logic
           );
 END audio_controller;
 
@@ -45,12 +47,12 @@ ARCHITECTURE Behavior OF audio_controller IS
    SIGNAL reset                                    : STD_LOGIC;
  
 BEGIN
-   reset <= NOT(KEY(0));
+   reset <= KEY;
 
    --YOUR CODE GOES HERE
    read_s <= '0';
-    writedata_left <= lt_fifo_dout;
-    writedata_right <= rt_fifo_dout;
+    writedata_left <= std_logic_vector(resize(signed(lt_fifo_dout), writedata_left'length));
+    writedata_right <= std_logic_vector(resize(signed(rt_fifo_dout), writedata_right'length));
 
     audio_write_process : process ( reset, CLOCK_50 )
     begin
@@ -62,7 +64,7 @@ BEGIN
             write_s <= '0';
             lt_fifo_rd_en <= '0';
             rt_fifo_rd_en <= '0';
-            if ( write_ready = '1' ) then
+            if ( (write_ready = '1') AND (lt_fifo_empty = '0') AND (rt_fifo_empty = '0') ) then
                 write_s <= '1';
                 lt_fifo_rd_en <= '1';
                 rt_fifo_rd_en <= '1';
