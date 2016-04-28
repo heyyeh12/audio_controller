@@ -5,7 +5,7 @@ USE ieee.numeric_std.all;
 ENTITY audio_controller IS
    PORT ( CLOCK_50, CLOCK_27, AUD_DACLRCK   : IN    STD_LOGIC;
           AUD_ADCLRCK, AUD_BCLK, AUD_ADCDAT  : IN    STD_LOGIC;
-          KEY                                : IN    STD_LOGIC;
+          RESET                                : IN    STD_LOGIC;
           I2C_SDAT                      : INOUT STD_LOGIC;
           I2C_SCLK, AUD_DACDAT, AUD_XCK : OUT   STD_LOGIC;
           
@@ -44,10 +44,8 @@ ARCHITECTURE Behavior OF audio_controller IS
    SIGNAL read_ready, write_ready, read_s, write_s : STD_LOGIC;
    SIGNAL readdata_left, readdata_right            : STD_LOGIC_VECTOR(23 DOWNTO 0);
    SIGNAL writedata_left, writedata_right          : STD_LOGIC_VECTOR(23 DOWNTO 0);   
-   SIGNAL reset                                    : STD_LOGIC;
- 
+   
 BEGIN
-   reset <= KEY;
 
    --YOUR CODE GOES HERE
    read_s <= '0';

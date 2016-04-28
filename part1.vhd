@@ -42,7 +42,7 @@ end component fifo;
 component audio_controller IS
    PORT ( CLOCK_50, CLOCK_27, AUD_DACLRCK   : IN    STD_LOGIC;
           AUD_ADCLRCK, AUD_BCLK, AUD_ADCDAT  : IN    STD_LOGIC;
-          KEY                                : IN    STD_LOGIC;
+          RESET                                : IN    STD_LOGIC;
           I2C_SDAT                      : INOUT STD_LOGIC;
           I2C_SCLK, AUD_DACDAT, AUD_XCK : OUT   STD_LOGIC;
           
@@ -74,23 +74,23 @@ fifo_left_map : fifo generic map ( FIFO_DATA_WIDTH => 16,
 											  wr_clk => CLOCK_50,
 											  reset => RESET,
 											  rd_en => lt_read_en,
-											  wr_en => '1',
-											  din => sin_out,
+											  wr_en => lt_wr_en,
+											  din => lt_sin_out,
 											  dout => left_data_out,
 											  full => left_full,
 											  empty => left_empty);
 
---fifo_right_map : fifo generic map ( FIFO_DATA_WIDTH => 24, 
---											  FIFO_BUFFER_SIZE => 48)
---							port map 	( rd_clk => CLOCK_50,
---											  wr_clk => CLOCK_50,
---											  reset => RESET,
---											  rd_en => rt_read_en,
---											  wr_en => '1',
---											  din => sin_out_right,
---											  dout => right_data_out,
---											  full => right_full,
---											  empty => right_empty);											  
+fifo_right_map : fifo generic map ( FIFO_DATA_WIDTH => 16, 
+											  FIFO_BUFFER_SIZE => 1024)
+							port map 	( rd_clk => CLOCK_50,
+											  wr_clk => CLOCK_50,
+											  reset => RESET,
+											  rd_en => rt_read_en,
+											  wr_en => rt_wr_en,
+											  din => rt_sin_out,
+											  dout => right_data_out,
+											  full => right_full,
+											  empty => right_empty);											  
 											  
 											  
 
@@ -101,7 +101,7 @@ audio_controller_map : audio_controller port map (CLOCK_50 => CLOCK_50,
 																  AUD_ADCLRCK => AUD_ADCLRCK,
 																  AUD_BCLK => AUD_BCLK,
 																  AUD_ADCDAT => AUD_ADCDAT,
-																  KEY => RESET,
+																  RESET => RESET,
 																  I2C_SDAT => I2C_SDAT,
 																  I2C_SCLK => I2C_SCLK,
 																  AUD_DACDAT => AUD_DACDAT,
@@ -109,9 +109,9 @@ audio_controller_map : audio_controller port map (CLOCK_50 => CLOCK_50,
 																  lt_fifo_dout => left_data_out,
 																  lt_fifo_rd_en => lt_read_en,
 																  lt_fifo_empty => left_empty,
-																  rt_fifo_dout => left_data_out,
+																  rt_fifo_dout => rt_data_out,
 																  rt_fifo_rd_en => rt_read_en,
-																  rt_fifo_empty => left_empty);
+																  rt_fifo_empty => right_empty);
 																  
 
 
@@ -120,7 +120,7 @@ audio_controller_map : audio_controller port map (CLOCK_50 => CLOCK_50,
  begin
 	if ( RESET = '0' ) then
 		sin_counter_left <= (others => '0');
-	elsif ( rising_edge(CLOCK_50) AND left_full = '0') then
+	elsif ( rising_edge(CLOCK_50) AND left_full = '0' and right_full = '0') then
 		--if ( lrck_lat = '1' and lrck = '0') then
 			if (sin_counter_left = "101111") then
 				sin_counter_left <= "000000";
@@ -131,6 +131,7 @@ audio_controller_map : audio_controller port map (CLOCK_50 => CLOCK_50,
 	end if;
  end process;
 
+ lt_fifo
 
  
 
