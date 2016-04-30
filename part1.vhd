@@ -57,9 +57,22 @@ component audio_controller IS
 END component audio_controller;
 	
 --***************************************************************************
+   type table is array (47 downto 0) of std_logic_vector(15 downto 0);
+	
+	constant sin_values : table := 
+	(X"0000", X"10b4", X"2120", X"30fb", X"3fff", X"4deb", X"5a81", X"658b",X"6ed9",X"7640", X"7ba2",
+    X"7ee6", X"7fff", X"7ee6", X"7ba2", X"7640", X"6ed9", X"658b", X"5a81", X"4deb", X"3fff", X"30fb",
+    X"2120", X"10b4", X"0000", X"ef4b", X"dee0", X"cf05", X"c001", X"b215", X"a57e", X"9a74", X"9127", 
+	 X"89bf", X"845d", X"8119", X"8000", X"8119", X"845d", X"89bf", X"9127", X"9a74", X"a57e", X"b215",
+    X"c000", X"cf05", X"dee0", X"ef4b", X"0000");
+ 
  
 	signal sin_counter_left, sin_counter_right : std_logic_vector(5 downto 0);
    signal sin_out    : std_logic_vector(15 downto 0);
+ 
+ 
+	signal lt_sin_addr, rt_sin_addr : integer := 0;
+	
  
 
 	signal left_full, left_empty, lt_read_en, rt_read_en : std_logic;
@@ -114,82 +127,30 @@ audio_controller_map : audio_controller port map (CLOCK_50 => CLOCK_50,
 																  rt_fifo_empty => right_empty);
 																  
 
+lt_sin_out <= sin_values(lt_sin_addr);
+rt_sin_out <= sin_values(rt_sin_addr);																  
+																  
 
-
-	process(CLOCK_50, RESET)
- begin
-	if ( RESET = '0' ) then
-		sin_counter_left <= (others => '0');
-	elsif ( rising_edge(CLOCK_50) AND left_full = '0' and right_full = '0') then
-		--if ( lrck_lat = '1' and lrck = '0') then
-			if (sin_counter_left = "101111") then
-				sin_counter_left <= "000000";
-			else
-				sin_counter_left <= sin_counter_left + '1';
-			end if;
-		--end if;
+process (CLOCK_50, RESET)
+begin
+	if(RESET = '1') then
+		lt_fifo_wr_en <= '0';
+		rt_fifo_wr_en <= '0';
+		lt_sin_addr <= 0;
+		rt_sin_addr <= 0;
+	elsif (rising_edge(CLOCK_50)) then
+		if (left_full = '0') then
+			lt_fifo_wr_en <= '1';
+			lt_sin_addr <= lt_sin_addr + 1;
+		end if;
+		if (right_full = '0') then
+			rt_fifo_wr_en <= '1';
+			rt_sin_addr <= rt_sin_addr + 1;
+		end if;
 	end if;
- end process;
-
- lt_fifo
-
- 
+	end process;
 
 
-process ( sin_counter_left )
- begin
-	case sin_counter_left is
-		when "000000" => sin_out <= X"0000";
-		when "000001" => sin_out <= X"10b4";
-		when "000010" => sin_out <= X"2120";
-		when "000011" => sin_out <= X"30fb";
-		when "000100" => sin_out <= X"3fff";
-		when "000101" => sin_out <= X"4deb";
-		when "000110" => sin_out <= X"5a81";
-		when "000111" => sin_out <= X"658b";
-		when "001000" => sin_out <= X"6ed9";
-		when "001001" => sin_out <= X"7640";
-		when "001010" => sin_out <= X"7ba2";
- when "001011" => sin_out <= X"7ee6";
- when "001100" => sin_out <= X"7fff";
- when "001101" => sin_out <= X"7ee6";
- when "001110" => sin_out <= X"7ba2";
- when "001111" => sin_out <= X"7640";
- when "010000" => sin_out <= X"6ed9";
- when "010001" => sin_out <= X"658b";
- when "010010" => sin_out <= X"5a81";
- when "010011" => sin_out <= X"4deb";
- when "010100" => sin_out <= X"3fff";
- when "010101" => sin_out <= X"30fb";
- when "010110" => sin_out <= X"2120";
- when "010111" => sin_out <= X"10b4";
- when "011000" => sin_out <= X"0000";
- when "011001" => sin_out <= X"ef4b";
- when "011010" => sin_out <= X"dee0";
- when "011011" => sin_out <= X"cf05";
- when "011100" => sin_out <= X"c001";
- when "011101" => sin_out <= X"b215";
- when "011110" => sin_out <= X"a57e";
- when "011111" => sin_out <= X"9a74";
- when "100000" => sin_out <= X"9127";
- when "100001" => sin_out <= X"89bf";
- when "100010" => sin_out <= X"845d";
- when "100011" => sin_out <= X"8119";
- when "100100" => sin_out <= X"8000";
- when "100101" => sin_out <= X"8119";
- when "100110" => sin_out <= X"845d";
- when "100111" => sin_out <= X"89bf";
- when "101000" => sin_out <= X"9127";
- when "101001" => sin_out <= X"9a74";
- when "101010" => sin_out <= X"a57e";
- when "101011" => sin_out <= X"b215";
- when "101100" => sin_out <= X"c000"; 
- when "101101" => sin_out <= X"cf05";
- when "101110" => sin_out <= X"dee0";
- when "101111" => sin_out <= X"ef4b";
- when others => sin_out <= X"0000";
- end case;
- end process;
 
  
 											  
