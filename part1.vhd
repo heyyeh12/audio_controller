@@ -5,11 +5,11 @@ USE ieee.std_logic_signed.all;
 ENTITY part1 IS
    PORT ( CLOCK_50, CLOCK_27, RESET, AUD_DACLRCK   : IN    STD_LOGIC;
           AUD_ADCLRCK, AUD_BCLK, AUD_ADCDAT  : IN    STD_LOGIC;
-          KEY                                : IN    STD_LOGIC;
           I2C_SDAT                      : INOUT STD_LOGIC;
-          I2C_SCLK, AUD_DACDAT, AUD_XCK : OUT   STD_LOGIC
+          I2C_SCLK, AUD_DACDAT, AUD_XCK : OUT   STD_LOGIC;
           
-         
+	  lt_sin_values, rt_sin_values : out std_logic_vector(15 downto 0);
+	  lt_signal, rt_signal : OUT std_logic_vector(23 downto 0)
           
           );
 END part1;
@@ -52,7 +52,8 @@ component audio_controller IS
 			 lt_fifo_empty : IN std_logic;
           rt_fifo_dout : IN std_logic_vector(15 downto 0);
           rt_fifo_rd_en : OUT std_logic;
-			 rt_fifo_empty : IN std_logic
+			 rt_fifo_empty : IN std_logic;
+	lt_signal, rt_signal : OUT std_logic_vector(23 downto 0)
           );
 END component audio_controller;
 	
@@ -60,11 +61,11 @@ END component audio_controller;
    type table is array (47 downto 0) of std_logic_vector(15 downto 0);
 	
 	constant sin_values : table := 
-	(X"0000", X"10b4", X"2120", X"30fb", X"3fff", X"4deb", X"5a81", X"658b",X"6ed9",X"7640", X"7ba2",
+	( X"0000", X"10b4", X"2120", X"30fb", X"3fff", X"4deb", X"5a81", X"658b",X"6ed9",X"7640", X"7ba2",
     X"7ee6", X"7fff", X"7ee6", X"7ba2", X"7640", X"6ed9", X"658b", X"5a81", X"4deb", X"3fff", X"30fb",
     X"2120", X"10b4", X"0000", X"ef4b", X"dee0", X"cf05", X"c001", X"b215", X"a57e", X"9a74", X"9127", 
 	 X"89bf", X"845d", X"8119", X"8000", X"8119", X"845d", X"89bf", X"9127", X"9a74", X"a57e", X"b215",
-    X"c000", X"cf05", X"dee0", X"ef4b", X"0000");
+    X"c000", X"cf05", X"dee0", X"ef4b");
  
  
 	signal sin_counter_left, sin_counter_right : std_logic_vector(5 downto 0);
@@ -73,10 +74,9 @@ END component audio_controller;
  
 	signal lt_sin_addr, rt_sin_addr : integer := 0;
 	
- 
-
-	signal left_full, left_empty, lt_read_en, rt_read_en : std_logic;
-   signal left_data_out : std_logic_vector(15 downto 0);
+        signal left_data_out, right_data_out : std_logic_vector(15 downto 0);
+	signal lt_sin_out, rt_sin_out : std_logic_vector(15 downto 0);
+	signal left_full, right_full, left_empty, right_empty, lt_wr_en, rt_wr_en, lt_read_en, rt_read_en : std_logic;
  
  
 BEGIN
@@ -122,30 +122,42 @@ audio_controller_map : audio_controller port map (CLOCK_50 => CLOCK_50,
 																  lt_fifo_dout => left_data_out,
 																  lt_fifo_rd_en => lt_read_en,
 																  lt_fifo_empty => left_empty,
-																  rt_fifo_dout => rt_data_out,
+																  rt_fifo_dout => right_data_out,
 																  rt_fifo_rd_en => rt_read_en,
-																  rt_fifo_empty => right_empty);
-																  
+																  rt_fifo_empty => right_empty,
+																  lt_signal => lt_signal,
+																  rt_signal => rt_signal);
+lt_sin_out <= sin_values(47);
+rt_sin_out <= sin_values(rt_sin_addr);																	  
 
-lt_sin_out <= sin_values(lt_sin_addr);
-rt_sin_out <= sin_values(rt_sin_addr);																  
+lt_sin_values <= lt_sin_out;
+rt_sin_values <= rt_sin_out;														  
 																  
 
 process (CLOCK_50, RESET)
 begin
+	
 	if(RESET = '1') then
-		lt_fifo_wr_en <= '0';
-		rt_fifo_wr_en <= '0';
+		lt_wr_en <= '0';
+		rt_wr_en <= '0';
 		lt_sin_addr <= 0;
 		rt_sin_addr <= 0;
 	elsif (rising_edge(CLOCK_50)) then
 		if (left_full = '0') then
-			lt_fifo_wr_en <= '1';
-			lt_sin_addr <= lt_sin_addr + 1;
+			lt_wr_en <= '1';
+			if (lt_sin_addr > 48) then
+				lt_sin_addr <= 0;
+			elsif (lt_wr_en = '1') then
+				lt_sin_addr <= lt_sin_addr + 1;
+			end if;
 		end if;
 		if (right_full = '0') then
-			rt_fifo_wr_en <= '1';
-			rt_sin_addr <= rt_sin_addr + 1;
+			rt_wr_en <= '1';
+			if (rt_sin_addr > 48) then
+				rt_sin_addr <= 0;
+			elsif(rt_wr_en = '1') then
+				rt_sin_addr <= lt_sin_addr + 1;
+			end if;
 		end if;
 	end if;
 	end process;

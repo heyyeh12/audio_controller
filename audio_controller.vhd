@@ -15,7 +15,11 @@ ENTITY audio_controller IS
 			 lt_fifo_empty : IN std_logic;
           rt_fifo_dout : IN std_logic_vector(15 downto 0);
           rt_fifo_rd_en : OUT std_logic;
-			 rt_fifo_empty : IN std_logic
+			 rt_fifo_empty : IN std_logic;
+
+	  -- simulation
+          lt_signal : OUT std_logic_vector(23 downto 0);
+	  rt_signal : OUT std_logic_vector(23 downto 0)
           );
 END audio_controller;
 
@@ -47,11 +51,12 @@ ARCHITECTURE Behavior OF audio_controller IS
    
 BEGIN
 
-   --YOUR CODE GOES HERE
    read_s <= '0';
     writedata_left <= std_logic_vector(resize(signed(lt_fifo_dout), writedata_left'length));
     writedata_right <= std_logic_vector(resize(signed(rt_fifo_dout), writedata_right'length));
 
+    lt_signal <= writedata_left;
+    rt_signal <= writedata_right;
     audio_write_process : process ( reset, CLOCK_50 )
     begin
         if ( reset = '1' ) then
