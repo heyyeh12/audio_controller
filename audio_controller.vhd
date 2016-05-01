@@ -10,10 +10,10 @@ ENTITY audio_controller IS
           I2C_SCLK, AUD_DACDAT, AUD_XCK : OUT   STD_LOGIC;
           
           -- add fifo signals for LT / RT channels
-          lt_fifo_dout : IN std_logic_vector(15 downto 0);
+          lt_fifo_dout : IN std_logic_vector(23 downto 0);
           lt_fifo_rd_en : OUT std_logic;
 			 lt_fifo_empty : IN std_logic;
-          rt_fifo_dout : IN std_logic_vector(15 downto 0);
+          rt_fifo_dout : IN std_logic_vector(23 downto 0);
           rt_fifo_rd_en : OUT std_logic;
 			 rt_fifo_empty : IN std_logic;
 
@@ -55,8 +55,9 @@ BEGIN
     writedata_left <= std_logic_vector(resize(signed(lt_fifo_dout), writedata_left'length));
     writedata_right <= std_logic_vector(resize(signed(rt_fifo_dout), writedata_right'length));
 
-    lt_signal <= writedata_left;
-    rt_signal <= writedata_right;
+    lt_signal <= std_logic_vector(resize(signed(lt_fifo_dout), writedata_left'length));
+    rt_signal <= std_logic_vector(resize(signed(rt_fifo_dout), writedata_right'length));
+
     audio_write_process : process ( reset, CLOCK_50 )
     begin
         if ( reset = '1' ) then
@@ -64,14 +65,24 @@ BEGIN
             lt_fifo_rd_en <= '0';
             rt_fifo_rd_en <= '0';
        elsif ( rising_edge( CLOCK_50 ) ) then
-            write_s <= '0';
-            lt_fifo_rd_en <= '0';
-            rt_fifo_rd_en <= '0';
-            if ( (write_ready = '1') AND (lt_fifo_empty = '0') AND (rt_fifo_empty = '0') ) then
-                write_s <= '1';
+	--- for simulation only	
+	write_ready <= '1';
+	    if ( (write_ready = '1') AND (lt_fifo_empty = '0') AND (rt_fifo_empty = '0') ) then
+               --report "Read enabled";
+		 write_s <= '1';
                 lt_fifo_rd_en <= '1';
                 rt_fifo_rd_en <= '1';
-            end if;                            
+	    else
+		--report "write_ready" & std_logic'image(write_ready);
+		--report "lt_fifo_emtpy" & std_logic'image(lt_fifo_empty);
+		write_s <= '0';
+            	lt_fifo_rd_en <= '0';
+            	rt_fifo_rd_en <= '0';            
+	    end if; 
+
+		
+
+		                          
        end if;
    end process audio_write_process;
       
