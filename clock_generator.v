@@ -65,7 +65,7 @@ parameter AUD_CLK_DIV	= 31;
  *                             Port Declarations                             *
  *****************************************************************************/
 // Inputs
-input				[1:1] CLOCK_27;
+input				CLOCK_27;
 input				reset;
 
 // Outputs
@@ -106,7 +106,7 @@ wire				audio_clk_locked;
  *****************************************************************************/
 
 altpll DE_Clock_Generator_Audio (
-	.inclk		({1'b0, CLOCK_27[1]}),
+	.inclk		({1'b0, CLOCK_27}),
 	.clk		(AUD_XCK),
 	.locked		(audio_clk_locked),
 	.activeclock	(),
