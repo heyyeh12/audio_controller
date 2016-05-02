@@ -58,17 +58,18 @@ component audio_controller IS
 END component audio_controller;
 	
 --***************************************************************************
-   type table is array (255 downto 0) of std_logic_vector(23 downto 0);
-	
---	constant sin_values : table := 
---	( X"0000", X"10b4", X"2120", X"30fb", X"3fff", X"4deb", X"5a81", X"658b",X"6ed9",X"7640", X"7ba2",
---    X"7ee6", X"7fff", X"7ee6", X"7ba2", X"7640", X"6ed9", X"658b", X"5a81", X"4deb", X"3fff", X"30fb",
---    X"2120", X"10b4", X"0000", X"ef4b", X"dee0", X"cf05", X"c001", X"b215", X"a57e", X"9a74", X"9127", 
---	 X"89bf", X"845d", X"8119", X"8000", X"8119", X"845d", X"89bf", X"9127", X"9a74", X"a57e", X"b215",
---    X"c000", X"cf05", X"dee0", X"ef4b");
+   type sin_table is array (47 downto 0) of std_logic_vector(23 downto 0);
+   type snare_table is array (255 downto 0) of std_logic_vector(23 downto 0);
+
+	constant sin_values : sin_table := 
+	( X"000000", X"0010b4", X"002120", X"0030fb", X"003fff", X"004deb", X"005a81", X"00658b",X"006ed9",X"007640", X"007ba2",
+    X"007ee6", X"007fff", X"007ee6", X"007ba2", X"007640", X"006ed9", X"00658b", X"005a81", X"004deb", X"003fff", X"0030fb",
+    X"002120", X"0010b4", X"000000", X"ffef4b", X"ffdee0", X"ffcf05", X"ffc001", X"ffb215", X"ffa57e", X"ff9a74", X"ff9127", 
+	 X"ff89bf", X"ff845d", X"ff8119", X"ff8000", X"ff8119", X"ff845d", X"ff89bf", X"ff9127", X"ff9a74", X"ffa57e", X"ffb215",
+   X"ffc000", X"ffcf05", X"ffdee0", X"ffef4b");
  
 
-	constant snare_values : table :=
+	constant snare_values : snare_table :=
 	(
  x"000000",  x"0000fe",  x"feffff",  x"ff0000",  x"000000",  x"000000",  x"000000",  x"000000",
  x"000000",  x"000000",  x"000000",  x"000000",  x"000000",  x"000000",  x"000000",  x"000000",
@@ -104,8 +105,8 @@ END component audio_controller;
  x"a1f1e6",  x"e6b973",  x"73e699",  x"992fd5",  x"d5ec3f",  x"3fcd7b",  x"7b4dc1",  x"c18b75"
 );
 
-constant sin_table_size : integer := 48;
-constant snare_table_size : integer := 256;
+constant table_size : integer := 48;
+
 
  
 	--signal sin_counter_left, sin_counter_right : std_logic_vector(5 downto 0);
@@ -185,18 +186,20 @@ begin
 		--report "lt_fifo_enable is " &std_logic'image(lt_read_en);
 		--report  "rt_fifo_enable is " &std_logic'image(rt_read_en);
 
-		--lt_sin_out <= sin_values(lt_sin_addr);
-		--rt_sin_out <= sin_values(rt_sin_addr);																	  
+--*************Sin Wave**************************************
+		lt_sin_out <= sin_values(lt_sin_addr);
+		rt_sin_out <= sin_values(rt_sin_addr);																	  
 
-		lt_sin_out <= snare_values(lt_sin_addr);
-		rt_sin_out <= snare_values(rt_sin_addr);
+--*************Snare Wave**************************************
+		--lt_sin_out <= snare_values(lt_sin_addr);
+		--rt_sin_out <= snare_values(rt_sin_addr);
 
 
 		
 
 		if (left_full = '0') then
 			lt_wr_en <= '1';
-			if (lt_sin_addr >= snare_table_size - 1) then
+			if (lt_sin_addr >= table_size - 1) then
 				lt_sin_addr <= 0;
 			elsif (lt_wr_en = '1') then
 				lt_sin_addr <= lt_sin_addr + 1;
@@ -205,7 +208,7 @@ begin
 		end if;
 		if (right_full = '0') then
 			rt_wr_en <= '1';
-			if (rt_sin_addr >= snare_table_size - 1) then
+			if (rt_sin_addr >= table_size - 1) then
 				rt_sin_addr <= 0;
 			elsif(rt_wr_en = '1') then
 				rt_sin_addr <= lt_sin_addr + 1;
