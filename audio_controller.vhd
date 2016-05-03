@@ -67,11 +67,20 @@ BEGIN
        elsif ( rising_edge( CLOCK_50 ) ) then
 	--- for simulation only	
 	write_ready <= '1';
-	    if ( (write_ready = '1') AND (lt_fifo_empty = '0') AND (rt_fifo_empty = '0') ) then
-               --report "Read enabled";
-		 write_s <= '1';
-                lt_fifo_rd_en <= '1';
-                rt_fifo_rd_en <= '1';
+	lt_fifo_rd_en <= '0';
+	rt_fifo_rd_en <= '0';
+	write_s <= '1';
+	    if (write_ready = '1') then
+		
+		if (lt_fifo_empty = '0') then
+                  write_s <= '1';
+                  lt_fifo_rd_en <= '1';
+                end if;
+
+ 	        if (rt_fifo_empty = '0') then
+		  write_s <= '1';
+                  rt_fifo_rd_en <= '1';
+                end if;
 	    else
 		--report "write_ready" & std_logic'image(write_ready);
 		--report "lt_fifo_emtpy" & std_logic'image(lt_fifo_empty);

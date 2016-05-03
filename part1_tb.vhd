@@ -25,7 +25,8 @@ signal I2C_SDAT                      :  STD_LOGIC;
 signal I2C_SCLK, AUD_DACDAT, AUD_XCK :  STD_LOGIC;
 signal lt_hit, rt_hit : STD_LOGIC;
 signal lt_signal, rt_signal : std_logic_vector(23 downto 0);
-
+constant freq : time := 10 ns;
+signal stop : std_logic := '0';
 begin
     
 part1_map : part1 port map (
@@ -37,15 +38,20 @@ part1_map : part1 port map (
                         rt_hit => rt_hit,
 			lt_signal => lt_signal, rt_signal => rt_signal 
           );
+	
 
 	clocked : process is
-		begin
-		CLOCK_50 <= '0';
-		CLOCK_27 <= '0';
-		wait for 5 ns;
-		CLOCK_50 <= '1';
-		CLOCK_27 <= '1';
-		wait for 5 ns;
+         	begin
+ 		if (STOP = '0') then
+			CLOCK_50 <= '0';
+			CLOCK_27 <= '0';
+			wait for freq/2;
+			CLOCK_50 <= '1';
+			CLOCK_27 <= '1';
+			wait for freq/2;
+		else
+			wait;
+		end if;
 	end process;
     
    process is
@@ -63,20 +69,25 @@ part1_map : part1 port map (
 			wait for 10 ns;
 			RESET <= '0';
                         lt_hit <= '1';
-                        rt_hit <= '1';
+                        rt_hit <= '0';
 			wait for 10 ns;
                         lt_hit <= '0';
                         rt_hit <= '0';
-			wait for 200 ns;
-                        lt_hit <= '1';
-                        wait for 10 ns;
-                        lt_hit <= '0';
-                        wait for 300 ns;
+			wait for 600 ns;
                         rt_hit <= '1';
                         wait for 10 ns;
                         rt_hit <= '0';
-                        wait for 500 ns;
-        wait;
+                        wait for 800 ns;
+                        rt_hit <= '1';
+                        wait for 10 ns;
+                        rt_hit <= '0';
+			wait for 3000 ns;
+			lt_hit <= '1';
+			wait for 10 ns;
+                        lt_hit <= '0';
+			wait for 5000 ns;
+        STOP <= '1';
+	wait;
     end process;
     
    
