@@ -1,6 +1,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.std_logic_signed.all;
+USE work.altera_drums.all;
 
 ENTITY part1 IS
    PORT ( CLOCK_50, CLOCK_27, RESET, AUD_DACLRCK   : IN    STD_LOGIC;
@@ -14,77 +15,6 @@ ENTITY part1 IS
 END part1;
 
 ARCHITECTURE Behavior OF part1 IS
-   
-   
---*********** FIFO Component *******************
-component fifo is
-generic
-(
-   constant FIFO_DATA_WIDTH : integer := 24;
-   constant FIFO_BUFFER_SIZE : integer := 1024
-);
-port
-(
-   signal rd_clk : in std_logic;
-   signal wr_clk : in std_logic;
-   signal reset : in std_logic;
-   signal rd_en : in std_logic;
-   signal wr_en : in std_logic;
-   signal din : in std_logic_vector ((FIFO_DATA_WIDTH - 1) downto 0);
-   signal dout : out std_logic_vector ((FIFO_DATA_WIDTH - 1) downto 0);
-   signal full : out std_logic;
-   signal empty : out std_logic
-);
-end component fifo;
-
---************* Audio Controller *********************************
-component audio_controller IS
-   PORT ( 
-          -- CODEC & BOARD SIGNALS
-          CLOCK_50, CLOCK_27, AUD_DACLRCK   : IN    STD_LOGIC;
-          AUD_ADCLRCK, AUD_BCLK, AUD_ADCDAT  : IN    STD_LOGIC;
-          RESET                                : IN    STD_LOGIC;
-          I2C_SDAT                      : INOUT STD_LOGIC;
-          I2C_SCLK, AUD_DACDAT, AUD_XCK : OUT   STD_LOGIC;
-          
-          -- FIFO SIGNALS
-          lt_fifo_dout : IN std_logic_vector(23 downto 0);
-          lt_fifo_rd_en : OUT std_logic;
-          lt_fifo_empty : IN std_logic;
-          rt_fifo_dout : IN std_logic_vector(23 downto 0);
-          rt_fifo_rd_en : OUT std_logic;
-          rt_fifo_empty : IN std_logic;
-
-          -- SIMULATION SIGNALS
-          lt_signal, rt_signal : OUT std_logic_vector(23 downto 0)
-          );
-END component audio_controller;
-
---********************** SOUND SELECTOR ********************************
-component sound_selector IS
-  GENERIC (
-          SOUND_BIT_WIDTH : INTEGER := 24
-  );
-  PORT ( 
-          CLOCK_50 : IN STD_LOGIC;
-          RESET : IN STD_LOGIC;
-
-          -- SPIKE DETECTOR
-          lt_hit, rt_hit : IN STD_LOGIC;
-          --lt_vol, rt_vol : IN STD_LOGIC_VECTOR(1 downto 0);
-
-          -- FIFOS
-          lt_full : IN STD_LOGIC;
-          lt_sound : OUT STD_LOGIC_VECTOR( SOUND_BIT_WIDTH-1 downto 0 );
-          lt_wr_en : OUT STD_LOGIC;
-          
-          rt_full : IN STD_LOGIC;
-          rt_sound : OUT STD_LOGIC_VECTOR( SOUND_BIT_WIDTH-1 downto 0 );
-          rt_wr_en : OUT STD_LOGIC
-        );
-END component;
-
-
  
    signal lt_sin_addr, rt_sin_addr : integer := 0;
    signal left_data_out, right_data_out : std_logic_vector(23 downto 0);
@@ -95,7 +25,7 @@ BEGIN
 
 fifo_left_map : fifo 
            generic map ( FIFO_DATA_WIDTH => 24, 
-               FIFO_BUFFER_SIZE => 1024)
+               FIFO_BUFFER_SIZE => 1536)
            port map   ( rd_clk => CLOCK_50,
                wr_clk => CLOCK_50,
                reset => RESET,
@@ -108,7 +38,7 @@ fifo_left_map : fifo
 
 fifo_right_map : fifo
             generic map ( FIFO_DATA_WIDTH => 24, 
-               FIFO_BUFFER_SIZE => 1024)
+               FIFO_BUFFER_SIZE => 1536)
             port map      ( rd_clk => CLOCK_50,
                 wr_clk => CLOCK_50,
                 reset => RESET,
