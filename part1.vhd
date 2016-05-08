@@ -23,6 +23,9 @@ ARCHITECTURE Behavior OF part1 IS
  
 BEGIN
 
+lt_signal <= lt_sin_out;
+rt_signal <= rt_sin_out;
+
 fifo_left_map : fifo 
            generic map ( FIFO_DATA_WIDTH => 24, 
                FIFO_BUFFER_SIZE => 1536)
@@ -65,9 +68,10 @@ audio_controller_map : audio_controller port map (CLOCK_50 => CLOCK_50,
                   lt_fifo_empty => left_empty,
                   rt_fifo_dout => right_data_out,
                   rt_fifo_rd_en => rt_read_en,
-                  rt_fifo_empty => right_empty,
-                  lt_signal => lt_signal,
-                  rt_signal => rt_signal);
+                  rt_fifo_empty => right_empty
+                  --lt_signal => lt_signal,
+                  --rt_signal => rt_signal
+						);
                                 
 sound_select_map : sound_selector port map (
           CLOCK_50 => CLOCK_50,

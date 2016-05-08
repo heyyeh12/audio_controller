@@ -3,8 +3,8 @@ USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
 ENTITY audio_controller IS
-   PORT ( CLOCK_50, CLOCK_27, AUD_DACLRCK   : IN    STD_LOGIC;
-          AUD_ADCLRCK, AUD_BCLK, AUD_ADCDAT  : IN    STD_LOGIC;
+   PORT ( CLOCK_50, CLOCK_27, AUD_DACLRCK      : IN    STD_LOGIC;
+          AUD_ADCLRCK, AUD_BCLK, AUD_ADCDAT    : IN    STD_LOGIC;
           RESET                                : IN    STD_LOGIC;
           I2C_SDAT                      : INOUT STD_LOGIC;
           I2C_SCLK, AUD_DACDAT, AUD_XCK : OUT   STD_LOGIC;
@@ -12,10 +12,10 @@ ENTITY audio_controller IS
           -- add fifo signals for LT / RT channels
           lt_fifo_dout : IN std_logic_vector(23 downto 0);
           lt_fifo_rd_en : OUT std_logic;
-			 lt_fifo_empty : IN std_logic;
+	  lt_fifo_empty : IN std_logic;
           rt_fifo_dout : IN std_logic_vector(23 downto 0);
           rt_fifo_rd_en : OUT std_logic;
-			 rt_fifo_empty : IN std_logic;
+	  rt_fifo_empty : IN std_logic;
 
 	  -- simulation
           lt_signal : OUT std_logic_vector(23 downto 0);
@@ -66,7 +66,7 @@ BEGIN
             rt_fifo_rd_en <= '0';
        elsif ( rising_edge( CLOCK_50 ) ) then
 	--- for simulation only	
-	write_ready <= '1';
+	--write_ready <= '1';
 	lt_fifo_rd_en <= '0';
 	rt_fifo_rd_en <= '0';
 	write_s <= '1';

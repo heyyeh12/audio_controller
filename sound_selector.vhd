@@ -27,10 +27,10 @@ END ENTITY sound_selector;
 ARCHITECTURE behavioral OF sound_selector IS
 
   --CONSTANTS - set to match sounds
-  constant LT_MAX : integer := snare_sound'length-1;
-  constant LT_LOOP : integer := 0;
+  constant LT_MAX : integer := sin_values'length-1;
+  constant LT_LOOP : integer := 100;
   constant RT_MAX : integer := snare_sound'length-1;
-  constant RT_LOOP : integer := 0;
+  constant RT_LOOP : integer := 100;
 
   -- SIGNALS
   signal lt_idx, rt_idx : integer := 0;
@@ -78,7 +78,7 @@ sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit)
           if(lt_idx >= LT_MAX) then
             lt_idx <= 0;
             if (lt_loop_cnt >= LT_LOOP) then
-              lt_play <= '0';
+              lt_play <= '1';
               lt_loop_cnt <= 0;
               lt_wr_en <= '0';
             else
@@ -95,7 +95,7 @@ sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit)
           if(rt_idx >= RT_MAX) then
             rt_idx  <= 0;
             if (rt_loop_cnt >= RT_LOOP) then
-              rt_play <= '0';
+              rt_play <= '1';
               rt_loop_cnt <= 0;
               rt_wr_en <= '0';
             else
