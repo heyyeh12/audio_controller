@@ -14,6 +14,8 @@ component part1 IS
           I2C_SDAT                      : INOUT STD_LOGIC;
           I2C_SCLK, AUD_DACDAT, AUD_XCK : OUT   STD_LOGIC;
           lt_hit, rt_hit : IN STD_LOGIC;
+	
+		write_ready_forced : in std_logic;
           -- SIMULATION
           lt_signal, rt_signal : OUT std_logic_vector(23 downto 0)
     );
@@ -27,6 +29,7 @@ signal lt_hit, rt_hit : STD_LOGIC;
 signal lt_signal, rt_signal : std_logic_vector(23 downto 0);
 constant freq : time := 10 ns;
 signal stop : std_logic := '0';
+signal write_ready_forced : std_logic := '1';
 begin
     
 part1_map : part1 port map (
@@ -36,6 +39,7 @@ part1_map : part1 port map (
                         I2C_SCLK => I2C_SCLK, AUD_DACDAT => AUD_DACDAT, AUD_XCK => AUD_XCK,
                         lt_hit => lt_hit,
                         rt_hit => rt_hit,
+			write_ready_forced => write_ready_forced,
 			lt_signal => lt_signal, rt_signal => rt_signal 
           );
 	

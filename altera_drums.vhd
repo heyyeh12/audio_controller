@@ -54,6 +54,9 @@ constant SOUND_BIT_WIDTH : integer := 24;
               rt_fifo_dout : IN std_logic_vector(23 downto 0);
               rt_fifo_rd_en : OUT std_logic;
               rt_fifo_empty : IN std_logic;
+				  
+				  --forcing write ready
+				  write_ready_forced : in std_logic;
     
               -- SIMULATION SIGNALS
               lt_signal, rt_signal : OUT std_logic_vector(23 downto 0)

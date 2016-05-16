@@ -17,6 +17,11 @@ ENTITY audio_controller IS
           rt_fifo_rd_en : OUT std_logic;
 	  rt_fifo_empty : IN std_logic;
 
+	  
+	  --write_ready forced\
+		write_ready_forced : in std_logic;
+
+	  
 	  -- simulation
           lt_signal : OUT std_logic_vector(23 downto 0);
 	  rt_signal : OUT std_logic_vector(23 downto 0)
@@ -70,7 +75,12 @@ BEGIN
 	lt_fifo_rd_en <= '0';
 	rt_fifo_rd_en <= '0';
 	write_s <= '1';
-	    if (write_ready = '1') then
+	
+	
+	
+	--Test forcing write ready all the time
+		if(write_ready_forced = '1') then
+	    --if (write_ready = '1') then
 		
 		if (lt_fifo_empty = '0') then
                   write_s <= '1';

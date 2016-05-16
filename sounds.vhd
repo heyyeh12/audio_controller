@@ -6,7 +6,7 @@ USE work.altera_drums.all;
 PACKAGE sounds IS
     
 ------------------------------------------------------------- 
-  type sin_table is array (47 downto 0) of std_logic_vector(23 downto 0);
+  type sin_table is array (0 to 47) of std_logic_vector(23 downto 0);
   constant sin_values : sin_table := 
    ( 
      X"000000",  X"0010b4",  X"002120",  X"0030fb",  X"003fff",  X"004deb",  X"005a81",  X"00658b",
@@ -54,8 +54,5 @@ PACKAGE sounds IS
     X"E01894", X"CC3EEB", X"B9E5A0", X"C04C5A", X"DECE47", X"04650E", X"1BB549", X"0A4D09",
     X"099BD3", X"17FD0C", X"1ECE99", X"11A122", X"0825E1", X"DA53BA", X"CD566E", X"C598F3"
    );
- 
- ------------------------------------------------------------- 
 
-END sounds;
-   
+end package;

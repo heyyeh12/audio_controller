@@ -9,6 +9,11 @@ ENTITY part1 IS
           I2C_SDAT                      : INOUT STD_LOGIC;
           I2C_SCLK, AUD_DACDAT, AUD_XCK : OUT   STD_LOGIC;
           lt_hit, rt_hit : IN STD_LOGIC;
+			 
+			 --Forcing write ready
+			 write_ready_forced : in std_logic;
+			 
+			 
           -- SIMULATION
           lt_signal, rt_signal : OUT std_logic_vector(23 downto 0)
           );
@@ -68,9 +73,10 @@ audio_controller_map : audio_controller port map (CLOCK_50 => CLOCK_50,
                   lt_fifo_empty => left_empty,
                   rt_fifo_dout => right_data_out,
                   rt_fifo_rd_en => rt_read_en,
-                  rt_fifo_empty => right_empty
+                  rt_fifo_empty => right_empty,
                   --lt_signal => lt_signal,
                   --rt_signal => rt_signal
+						write_ready_forced => write_ready_forced
 						);
                                 
 sound_select_map : sound_selector port map (
