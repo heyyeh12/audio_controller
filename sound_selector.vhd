@@ -28,9 +28,9 @@ ARCHITECTURE behavioral OF sound_selector IS
 
   --CONSTANTS - set to match sounds
   constant LT_MAX : integer := sin_values'length-1;
-  constant LT_LOOP : integer := 5000;
+  constant LT_LOOP : integer := 1000000;
   constant RT_MAX : integer := sin_values'length-1;
-  constant RT_LOOP : integer := 5000;
+  constant RT_LOOP : integer := 1000000;
 
   -- SIGNALS
   signal lt_idx, rt_idx : integer := 0;
@@ -74,6 +74,8 @@ sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit, lt_idx, rt_idx)
 		--actually this is only a first time through problem
 	
       -- LEFT FIFO CONTROL
+		
+		--Zaretsky's edits
 		if (lt_hit = '1') then
 			lt_idx <= 0;
 			lt_loop_cnt <= 0;
@@ -89,37 +91,48 @@ sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit, lt_idx, rt_idx)
 		end if;
 				
 				
-				
-				
+--		if (lt_hit = '1') then
+--      lt_idx <= 0;
+--      lt_play <= '1';
+--      lt_loop_cnt <= 0;
+--		elsif (lt_full = '0' and lt_play = '1') then
+--          rt_wr_en <= '1';
+--			 lt_wr_en <= '1';
 --          if(lt_idx >= LT_MAX) then
---            lt_idx <= 0;
+--            lt_idx  <= 0;
 --            if (lt_loop_cnt >= LT_LOOP) then
---              lt_play <= '1';
+--              lt_play <= '0';
 --              lt_loop_cnt <= 0;
 --              lt_wr_en <= '1';
 --            else
 --              lt_loop_cnt <= lt_loop_cnt + 1;
 --            end if;
 --          else
---            lt_idx <= lt_idx + 1;
+--            lt_idx  <= lt_idx  + 1;
 --          end if;
 --      end if;
+  		
+				
+				
+
 
       -- RIGHT FIFO CONTROL
+		
+		--Zaretsky stuff
 		if (rt_hit = '1') then
 			rt_idx <= 0;
 			rt_loop_cnt <= 0;
       elsif ( rt_loop_cnt < rt_LOOP ) then
 			if ( rt_idx < rt_MAX and rt_full = '0') then
 				rt_wr_en <= '1';
-				rt_wr_en <= '1';		
+				lt_wr_en <= '1';		
 				rt_idx <= rt_idx + 1;
 			elsif ( rt_idx >= rt_MAX ) then
 				rt_loop_cnt <= rt_loop_cnt + 1;
 				rt_idx <= 0;
 			end if;
 		end if;
-		
+ end if;
 		
 		
 		
@@ -135,7 +148,7 @@ sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit, lt_idx, rt_idx)
 --          if(rt_idx >= RT_MAX) then
 --            rt_idx  <= 0;
 --            if (rt_loop_cnt >= RT_LOOP) then
---              rt_play <= '1';
+--              rt_play <= '0';
 --              rt_loop_cnt <= 0;
 --              rt_wr_en <= '1';
 --            else
@@ -147,7 +160,9 @@ sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit, lt_idx, rt_idx)
 --      end if;
 --   end if;
 
-	end if;
+	
+	
+
 
 
 
