@@ -1,8 +1,9 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
-USE ieee.std_logic_signed.all;
+--USE ieee.std_logic_signed.all;
 USE work.altera_drums.all;
 USE work.sounds.all;
+use ieee.numeric_std.all;
 
 ENTITY sound_selector IS
   PORT ( 
@@ -48,10 +49,13 @@ END ENTITY sound_selector;
 ARCHITECTURE behavioral OF sound_selector IS
 
   --CONSTANTS - set to match sounds
-  constant LT_MAX : integer := sin_values'length-1;
+  constant LT_MAX : integer := 55391;
   constant LT_LOOP : integer := 1000000;
-  constant RT_MAX : integer := sin_values'length-1;
+  constant RT_MAX : integer := sin_values'length;
   constant RT_LOOP : integer := 1000000;
+  
+  constant lt_start_addr : integer := 0;
+  constant rt_start_addr : integer := 0;
 
   -- SIGNALS
   signal lt_idx, rt_idx : integer := 0;
@@ -65,12 +69,15 @@ BEGIN
 sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit, lt_idx, rt_idx, FL_ready)
 
 variable	addr_inc : integer := 0;
-variable first_time : std_logic := '1';
+variable lt_address, rt_address : integer := 0;
+variable byte_count : integer := 0;
+variable clone_FL_ce : std_logic := '1';
+variable flash_data : std_logic_vector(23 downto 0);
 
   BEGIN
 
   -- SIN WAV
-  lt_sound <= sin_values(lt_idx);
+  --lt_sound <= sin_values(lt_idx);
   rt_sound <= sin_values(rt_idx);
 
   -- SNARE WAV
@@ -102,25 +109,6 @@ variable first_time : std_logic := '1';
    elsif(rising_edge(CLOCK_50)) then
 
 	
-	if(press_for_next = '0') then
-			if(first_time = '1') then
-				addr_inc := addr_inc + 1;
-				FL_addr <= std_logic_vector(to_unsigned(addr_inc, FL_addr'length));
-				first_time := '0';	
-			end if;
-			
-			if(FL_ready = '1') then
-					data <= FL_dq;
-			end if;
-			
-			
-			FL_ce <= '0';
-			
-		else
-			first_time := '1';
-			FL_ce <= '1';
-			
-		end if;
 	
 	--Right now, if not hit, always automatically increments through the sin table, with no regards to whether or not you 
 	--have actually hit it
@@ -133,15 +121,47 @@ variable first_time : std_logic := '1';
 			lt_idx <= 0;
 			lt_loop_cnt <= 0;
       elsif ( lt_loop_cnt < LT_LOOP ) then
-			if ( lt_idx < LT_MAX and lt_full = '0') then
-				lt_wr_en <= '1';
-				rt_wr_en <= '1';		
-				lt_idx <= lt_idx + 1;
+			elsif ( lt_idx < LT_MAX and lt_full = '0' and FL_ready = '1') then
+				--lt_wr_en <= '1';
+				rt_wr_en <= '1';
+				
+				if (clone_FL_ce = '1') then
+					lt_address := lt_idx + lt_start_addr;
+					FL_addr <= std_logic_vector(to_unsigned(lt_address, FL_addr'length));
+					lt_idx <= lt_idx + 1;
+				
+	
+					if(byte_count = 1) then
+						flash_data(23 downto 16) := FL_dq;
+					elsif(byte_count = 2) then 
+						flash_data(15 downto 8) := FL_dq;
+					elsif(byte_count = 3) then
+						flash_data(7 downto 0) := FL_dq;
+					elsif(byte_count = 4) then
+						lt_wr_en <= '1';
+						lt_sound <= flash_data; 
+						byte_count := 0;
+					end if;	
+				
+					byte_count := byte_count + 1;
+					FL_ce <= '0';
+					clone_FL_ce := '0';
+					
+				elsif (clone_FL_ce = '0') then
+					FL_ce <= '1';
+					clone_FL_ce := '1';
+				
+				end if;
+			--else
+				--FL_ce <= '1';
+				
 			elsif ( lt_idx >= LT_MAX ) then
 				lt_loop_cnt <= lt_loop_cnt + 1;
 				lt_idx <= 0;
+				
+				
 			end if;
-		end if;
+		
 		
 		
 		--This works!
