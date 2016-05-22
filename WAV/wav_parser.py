@@ -29,7 +29,7 @@ data = f.readframes(chunk)
 while len(data) > 0:
     stream.write(data)
     # offset so 32 bits (NOTE: little endian, MSB is 0 bit)
-    fp.write(bytes([0])) 
+    # fp.write(bytes([0])) 
     fp.write(data)
     data = f.readframes(chunk)
 
