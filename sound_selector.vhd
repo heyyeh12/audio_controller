@@ -13,6 +13,27 @@ ENTITY sound_selector IS
           lt_hit, rt_hit : IN STD_LOGIC;
           --lt_vol, rt_vol : IN STD_LOGIC_VECTOR(1 downto 0);
 
+			 ------------------------------------------------------------------------------------
+			 --flash reader signals
+			 --Address
+			 FL_addr : out std_logic_vector(22 downto 0);
+			 
+			 --Data
+			 FL_dq : in std_logic_vector(7 downto 0);
+			 
+			 --Chip Enable
+			 FL_ce : out std_logic;
+			 
+			 --output enable
+			 FL_oe : out std_logic;
+			 
+			 --ready/busy
+			 FL_ready : in std_logic;
+			 
+			 --write enable
+			 FL_wr_en : out std_logic; -- set always high because we never want to write over it
+			 --------------------------------------------------------------------------------------
+			 
           -- FIFOS
           lt_full : IN STD_LOGIC;
           lt_sound : OUT STD_LOGIC_VECTOR( SOUND_BIT_WIDTH-1 downto 0 );
@@ -41,7 +62,10 @@ BEGIN
 
 
 
-sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit, lt_idx, rt_idx)
+sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit, lt_idx, rt_idx, FL_ready)
+
+variable	addr_inc : integer := 0;
+variable first_time : std_logic := '1';
 
   BEGIN
 
@@ -66,8 +90,37 @@ sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit, lt_idx, rt_idx)
       rt_play <= '0';
       lt_loop_cnt <= LT_LOOP;
       rt_loop_cnt <= RT_LOOP;
+		
+		--flash reset signals---
+		FL_addr <= (others => '0');
+		FL_wr_en <= '1';
+		FL_ce <= '1';
+		FL_oe <= '0';
+	
+		addr_inc := 0;
+		-------------------------
    elsif(rising_edge(CLOCK_50)) then
 
+	
+	if(press_for_next = '0') then
+			if(first_time = '1') then
+				addr_inc := addr_inc + 1;
+				FL_addr <= std_logic_vector(to_unsigned(addr_inc, FL_addr'length));
+				first_time := '0';	
+			end if;
+			
+			if(FL_ready = '1') then
+					data <= FL_dq;
+			end if;
+			
+			
+			FL_ce <= '0';
+			
+		else
+			first_time := '1';
+			FL_ce <= '1';
+			
+		end if;
 	
 	--Right now, if not hit, always automatically increments through the sin table, with no regards to whether or not you 
 	--have actually hit it
@@ -89,29 +142,22 @@ sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit, lt_idx, rt_idx)
 				lt_idx <= 0;
 			end if;
 		end if;
-				
-				
+		
+		
+		--This works!
 --		if (lt_hit = '1') then
---      lt_idx <= 0;
---      lt_play <= '1';
---      lt_loop_cnt <= 0;
---		elsif (lt_full = '0' and lt_play = '1') then
---          rt_wr_en <= '1';
---			 lt_wr_en <= '1';
---          if(lt_idx >= LT_MAX) then
---            lt_idx  <= 0;
---            if (lt_loop_cnt >= LT_LOOP) then
---              lt_play <= '0';
---              lt_loop_cnt <= 0;
---              lt_wr_en <= '1';
---            else
---              lt_loop_cnt <= lt_loop_cnt + 1;
---            end if;
---          else
---            lt_idx  <= lt_idx  + 1;
---          end if;
---      end if;
-  		
+--			lt_idx <= 0;
+--			lt_loop_cnt <= 0;
+--      elsif ( lt_loop_cnt < LT_LOOP ) then
+--			if ( lt_idx < LT_MAX and lt_full = '0') then
+--				lt_wr_en <= '1';
+--				rt_wr_en <= '1';		
+--				lt_idx <= lt_idx + 1;
+--			elsif ( lt_idx >= LT_MAX ) then
+--				lt_loop_cnt <= lt_loop_cnt + 1;
+--				lt_idx <= 0;
+--			end if;
+--		end if;
 				
 				
 
@@ -134,31 +180,6 @@ sound_select : PROCESS (CLOCK_50, RESET, lt_hit, rt_hit, lt_idx, rt_idx)
 		end if;
  end if;
 		
-		
-		
-		
-		
---      if (rt_hit = '1') then
---      rt_idx <= 0;
---      rt_play <= '1';
---      rt_loop_cnt <= 0;
---		elsif (rt_full = '0' and rt_play = '1') then
---          rt_wr_en <= '1';
---	  lt_wr_en <= '1';
---          if(rt_idx >= RT_MAX) then
---            rt_idx  <= 0;
---            if (rt_loop_cnt >= RT_LOOP) then
---              rt_play <= '0';
---              rt_loop_cnt <= 0;
---              rt_wr_en <= '1';
---            else
---              rt_loop_cnt <= rt_loop_cnt + 1;
---            end if;
---          else
---            rt_idx  <= rt_idx  + 1;
---          end if;
---      end if;
---   end if;
 
 	
 	

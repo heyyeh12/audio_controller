@@ -25,6 +25,24 @@ constant SOUND_BIT_WIDTH : integer := 24;
               lt_hit, rt_hit : IN STD_LOGIC;
               --lt_vol, rt_vol : IN STD_LOGIC_VECTOR(1 downto 0);
     
+			--flash address
+			FL_addr : out std_logic_vector(22 downto 0);
+			 
+			 --Data
+			 FL_dq : in std_logic_vector(7 downto 0);
+			 
+			 --Chip Enable
+			 FL_ce : out std_logic;
+			 
+			 --output enable
+			 FL_oe : out std_logic;
+			 
+			 --ready/busy
+			 FL_ready : in std_logic;
+			 
+			 --write enable
+			 FL_wr_en : out std_logic; -- set always high because we never want to write over it
+	 
               -- FIFOS
               lt_full : IN STD_LOGIC;
               lt_sound : OUT STD_LOGIC_VECTOR( SOUND_BIT_WIDTH-1 downto 0 );

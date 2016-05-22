@@ -13,6 +13,28 @@ ENTITY part1 IS
 			 --Forcing write ready
 			 write_ready_forced : in std_logic;
 			 
+			 ------------------------------------------------------------------------------------
+			 --flash reader signals
+			 
+			 --Address
+			 FL_addr : out std_logic_vector(22 downto 0);
+			 
+			 --Data
+			 FL_dq : in std_logic_vector(7 downto 0);
+			 
+			 --Chip Enable
+			 FL_ce : out std_logic;
+			 
+			 --output enable
+			 FL_oe : out std_logic;
+			 
+			 --ready/busy
+			 FL_ready : in std_logic;
+			 
+			 --write enable
+			 FL_wr_en : out std_logic; -- set always high because we never want to write over it
+			 --------------------------------------------------------------------------------------
+			 
 			 
           -- SIMULATION
           lt_signal, rt_signal : OUT std_logic_vector(23 downto 0)
@@ -89,6 +111,14 @@ sound_select_map : sound_selector port map (
           lt_wr_en => lt_wr_en,
           rt_full => right_full,
           rt_sound => rt_sin_out,
+			 
+			 FL_addr => FL_addr,
+			 FL_dq => FL_dq,
+			 FL_ce => FL_ce,
+			 FL_oe => FL_oe,
+			 FL_wr_en => FL_wr_en,
+			 FL_ready => FL_ready,
+			 
           rt_wr_en => rt_wr_en
    );
 
