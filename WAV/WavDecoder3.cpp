@@ -43,19 +43,27 @@ int getFileSize(FILE* inFile);
 
 int main(int argc, char* argv[])
 {
-    std::ofstream outfile ("wav_values.txt");
 
     wav_hdr wavHeader;
     int headerSize = sizeof(wav_hdr), filelength = 0;
 
     const char* filePath;
-    string input;
+    string arrayName, tableName;
+    string input, input1, input2;
     if (argc <= 1)
     {
         cout << "Input wave file name: ";
         cin >> input;
         cin.get();
         filePath = input.c_str();
+        cout << "Input array name: ";
+        cin >> input1;
+        cin.get();
+        arrayName = input1.c_str();
+        cout << "Input table name: ";
+        cin >> input2;
+        cin.get();
+        tableName = input2.c_str();
     }
     else
     {
@@ -69,7 +77,8 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Unable to open wave file: %s\n", filePath);
         return 1;
     }
-
+    string fp(tableName);
+    std::ofstream outfile (fp+".txt");
     //Read the header
     size_t bytesRead = fread(&wavHeader, 1, headerSize, wavFile);
     cout << "Header Read " << bytesRead << " bytes." << endl;
@@ -104,8 +113,8 @@ int main(int argc, char* argv[])
 
 
         
-        outfile << "type sound_table is array (0 to " << wavHeader.Subchunk2Size/3 << ") of std_logic_vector(SOUND_BIT_WIDTH-1 downto 0);" << endl;
-        outfile << "constant sound : sound_table :=" << endl;
+        outfile << "type " << arrayName << " is array (0 to " << wavHeader.Subchunk2Size/3 << ") of std_logic_vector(SOUND_BIT_WIDTH-1 downto 0);" << endl;
+        outfile << "constant " << tableName << " : sound_table_3 :=" << endl;
         outfile << "(" << endl;
         int totalBytes = 0;
         while ((bytesRead = fread(buffer, sizeof buffer[0], BUFFER_SIZE / (sizeof buffer[0]), wavFile)) > 0)
